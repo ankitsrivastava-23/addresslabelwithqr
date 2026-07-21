@@ -1,0 +1,14 @@
+{
+  "name": "Address Label and Virtual Paper Printer",
+  "short_name": "Label Studio",
+  "description": "Create address labels and place any label on virtual A4 or A5 paper for PDF or PNG printing",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F2F2F7",
+  "theme_color": "#5856D6",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Address Label</title>
+<meta name="robots" content="noindex">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0f172a;
+  color: #f1f5f9;
+  min-height: 100vh;
+  padding: 0 0 40px 0;
+}
+
+.header {
+  background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+  padding: 40px 20px 30px;
+  text-align: center;
+  border-bottom: 1px solid #1e293b;
+}
+.header .icon { font-size: 48px; margin-bottom: 10px; }
+.header h1 { font-size: 22px; font-weight: 700; color: #38bdf8; margin-bottom: 4px; }
+.header .sub { font-size: 14px; color: #64748b; margin-top: 2px; }
+
+.badge {
+  display: inline-block; padding: 5px 16px; border-radius: 20px;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.04em;
+  color: #fff; margin-bottom: 12px;
+}
+.badge.to   { background: #5B4FD1; }
+.badge.from { background: #475569; }
+
+.card {
+  background: #1e293b;
+  border-radius: 16px;
+  margin: 16px;
+  overflow: hidden;
+  border: 1px solid #334155;
+}
+
+.field {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  border-bottom: 1px solid #334155;
+  gap: 14px;
+  background: #1e293b;
+  text-decoration: none;
+  color: inherit;
+  transition: background .15s;
+}
+.field:last-child { border-bottom: none; }
+.field:active { background: #273549; }
+a.field { cursor: pointer; }
+
+.field-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0; margin-top: 1px;
+}
+.field-icon.blue   { background: rgba(56,189,248,.15); }
+.field-icon.green  { background: rgba(52,211,153,.15); }
+.field-icon.orange { background: rgba(251,146,60,.15); }
+.field-icon.red    { background: rgba(225,29,46,.12); }
+.field-icon.whatsapp { background: rgba(37,211,102,.16); }
+.field-icon.custom { background: rgba(255,255,255,.06); }
+
+.field-icon svg { width: 18px; height: 18px; }
+.field-icon img { width: 24px; height: 24px; object-fit: contain; display: block; }
+.field-icon.blue   svg { stroke: #38bdf8; }
+.field-icon.green  svg { stroke: #34d399; }
+.field-icon.orange svg { stroke: #fb923c; }
+
+.field-body { flex: 1; min-width: 0; }
+.field-label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 3px; }
+.field-value { font-size: 16px; color: #f1f5f9; font-weight: 500; word-break: break-word; line-height: 1.4; }
+.field-hint  { font-size: 11px; color: #38bdf8; margin-top: 3px; }
+
+.map-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0 16px 16px;
+}
+.map-btn {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  color: #f8fafc;
+  background: #2563eb;
+  border-radius: 12px;
+  padding: 13px 10px;
+  font-size: 14px;
+  font-weight: 800;
+}
+.map-btn.apple { background: #334155; }
+.map-btn:active { transform: scale(.98); }
+
+.copy-btn {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 20px 16px 0;
+  background: #38bdf8;
+  color: #0f172a;
+  border: none;
+  border-radius: 14px;
+  padding: 18px;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: .3px;
+  -webkit-appearance: none;
+  transition: background .15s, transform .1s;
+}
+.copy-btn:active { background: #0ea5e9; transform: scale(.98); }
+.copy-btn.done { background: #34d399; }
+
+.footer {
+  text-align: center; padding: 16px 24px 0; font-size: 11.5px; color: #334155;
+  line-height: 1.5;
+}
+
+#empty {
+  text-align: center; padding: 80px 28px; color: #475569;
+}
+#empty h2 { color: #64748b; font-size: 19px; margin: 0 0 8px; }
+#empty p  { font-size: 14px; line-height: 1.5; margin: 0; }
+
+.label-note {
+  margin: 12px 16px 0;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: break-word;
+}
+</style>
+</head>
+<body>
+<div id="content"></div>
+<script>
+function decodePayload() {
+  var hash = window.location.hash.replace(/^#/, '');
+  if (!hash) return null;
+  try {
+    var b64 = hash.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    var json = decodeURIComponent(escape(atob(b64)));
+    return JSON.parse(json);
+  } catch (e) { return null; }
+}
+
+function esc(s) {
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function escAttr(s) {
+  return esc(String(s || '')).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function safeColor(s, fallback) {
+  s = String(s || '').trim();
+  return /^#[0-9a-f]{6}$/i.test(s) ? s : fallback;
+}
+
+function safeMailtoAddress(s) {
+  return encodeURI(String(s || '').replace(/[\r\n]/g, ''));
+}
+
+function whatsappHref(s) {
+  var num = String(s || '').replace(/[^\d+]/g, '');
+  if (!num) return '';
+  if (num.charAt(0) === '+') num = num.slice(1);
+  return 'https://wa.me/' + num;
+}
+
+var _EMAIL_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAADcUlEQVR4nO2bPWgUQRiG3012Y8LlDg1BEJEYlBzBREQwgpjKRlLYRC0UqwRTiNqkME0QQVAUSWeKgIKNaKGi1v4URu0UIRJttEghMcbLXS53MTcWumEz7M/M7OzM3t695d7tzPe88823M8uOAUVayBHC8/+2jGFEFYtTkXXCCxykqAyR3qhscFqyjZDWWNTgtGQZEboR1eC0whohfLNucFqiRjSI3BQ3eEA8Jm4D4ghvSyQ25rSJM7ibWKcEUwZUGzzAHnOgSyLwW9K8d7Dp1xL/PUGZIFQEkyRfA6ox9WkFMXgakAR4W34srgYkCd6WF1O9BtAXkjj6ttzYTB2BAMCz9yU8ni4hXyRIbTIwMtCCvqylPI4NBqga/bE7eaxVCG4OpbG51cCXuTVcuJ3DjaE0enZGOyYLOUKcawPlGfD0XQnFMsGVM60Yv5fHYqGC3dtMjA6mMPFkGVMXM0rjWa8Bqkb//qsVDB9twfWHBRzeY+Hy6Va8/FjGoW4LM9//qAhhAyt3BoRd5n6dW0P3DhOvP5UxfiqFbz8q6O00YZkGrEY5ffMsmRsAvtHvGp5nb91FBATF0r/uKhXg0ZsVZLc34sWHMvp7mkK1zROfzSxUA7qG5zE71e7ZqfM3Wr0dFt5+XsXoYApjd/M4mLUwPbOKn0sEl06mAvul5RcHi4QXQs7O/IBpnTvWgmsPCujY2oiJkTRO9DdjoK8JR/Y1IdXM91YrLDwQciUoYsL+XRZunU1j8vkyjl9dxNDEbyzmCQ508a0BZMADgBm2+junw+xUO1MweztNTJ4Xf9zJgl/IESJlLyA6HUQkC96WtM2QjGCCJBsekLwbVGGC7H6kb4ejNkF2+1X1PiAKc6vKgCgUyW7QHqmwRSuKokcr0gwI83hUAQ8omAIiJqiCBxTVAB4TVMIDCosgiwmq4QGgQdXXWIC/CTrg2zKGofwx6GaCDnhbWtYBXpmgGh7QuBCiYXXAA/8NUFkHnLKhdcDbzNqXwrpG3ta6AbqyQIecrNozQLc2GFALWUAz1jOAvpDkLHBjc4VN6kcSbga4ToEkZoEXk2cNSJIJfiy+RTAJJtS/FA1QoAHVnAUssTNlQDWawBozN1jcH5G8g8VdA+KcDSKxCRXBOJogGlP92JysQGr24CStmj06S6tmD097Ka7H5/8Cg+Rp+htEX68AAAAASUVORK5CYII=';
+var _LAND_ICON  = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABRklEQVR4nO2a0Q3CMAxEE8QaLRuU/ceADQqDlA8UqaoIxI7TM+m9LxSIsK8Xn1oIgRBCCCGEHJOo3TgP0yL5/OV5V39XS06aTdLmtXv2QCxATSMeRVA5oCfE59LjVUxo5kxXDtBcnK4ECEEuwrlVISWMj5t4z2O8mtYAc4Cm+Zp9OSAC1DZhKUJ3M0AKRIDac2w5B2AO0DZhPQShKWDdjAbOAHQBaOACfIq00jULoAKkptbNla5ZAXcAGqgAKQXWaVC6ZkVXzwMSkucCPALoAtBsBdjd3ozB4CsGY3i7YBcneE6BJfd+bymQuxvc1QlIvs2AuHkdQ8VviV75NQRTw0to5Ih/SIGtE8zwmAI51k4ww3MK5FjmYTIvwpqW9wKHG4LdQwHQBaChAOgC0IgF8Pp3t4S0PpUDvIrgtS5CCCGEEEIIcccLv9GJNP5ofjAAAAAASUVORK5CYII=';
+
+function iconSvg(name) {
+  if (name === 'email')    return '<img src="' + _EMAIL_ICON + '" alt="email">';
+  if (name === 'landline') return '<img src="' + _LAND_ICON  + '" alt="landline">';
+  if (name === 'whatsapp') return '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" fill="#25d366" stroke="#25d366"/><path d="M8.6 9.2c.2 3.4 2.8 5.8 6.2 6.2l1.1-1.6c.2-.3.1-.7-.2-.9l-1.5-.8c-.3-.2-.7-.1-.9.2l-.4.6c-1.1-.5-1.9-1.3-2.4-2.4l.6-.4c.3-.2.4-.6.2-.9l-.8-1.5c-.2-.3-.6-.4-.9-.2L8.6 9.2Z" stroke="#fff"/></svg>';
+  var icons = {
+    pin:        '<path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/>',
+    smartphone: '<rect x="5" y="1" width="14" height="22" rx="2"/><line x1="12" y1="18" x2="12" y2="18.5" stroke-width="3"/>'
+  };
+  return '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (icons[name] || '') + '</svg>';
+}
+
+function field(opts) {
+  var tag = opts.href ? 'a' : 'div';
+  var hrefAttr = opts.href ? ' href="' + escAttr(opts.href) + '"' : '';
+  var targetAttr = opts.href && opts.newTab ? ' target="_blank" rel="noopener"' : '';
+  var hint = opts.hint ? '<div class="field-hint">' + esc(opts.hint) + '</div>' : '';
+  return '<' + tag + ' class="field"' + hrefAttr + targetAttr + '>' +
+    '<div class="field-icon ' + escAttr(opts.iconColor) + '">' + iconSvg(opts.icon) + '</div>' +
+    '<div class="field-body">' +
+      '<div class="field-label">' + esc(opts.label) + '</div>' +
+      '<div class="field-value">' + opts.valueHtml + '</div>' +
+      hint +
+    '</div>' +
+  '</' + tag + '>';
+}
+
+function render() {
+  var data = decodePayload();
+  var content = document.getElementById('content');
+
+  if (!data || (!data.n && !data.pb && !data.h && !(data.a && data.a.length) && !data.ci && !data.m && !data.t && !data.w && !data.e)) {
+    content.innerHTML = '<div id="empty"><h2>No label data found</h2><p>This link does not contain any readable address label information.</p></div>';
+    return;
+  }
+
+  var isTo = data.s !== 'FROM';
+  var html = '';
+
+  /* Note box — appears BEFORE name/company header */
+  if (data.nt) {
+    var noteColor = safeColor(data.nc, '#cc0000');
+    html += '<div class="label-note" style="color:' + noteColor + ';border-color:' + noteColor + '33">' + esc(data.nt) + '</div>';
+  }
+
+  html += '<div class="header">' +
+    '' +
+    '<span class="badge ' + (isTo ? 'to' : 'from') + '">' + (isTo ? 'TO' : 'FROM') + '</span>' +
+    '<h1>' + (esc(data.n || '') || 'Address Label') + '</h1>' +
+    (data.c ? '<div class="sub">' + esc(data.c) + '</div>' : '') +
+  '</div>';
+
+  var addrParts = [];
+  if (data.pb) addrParts.push(data.pb);
+  if (data.h) addrParts.push(data.h);
+  if (data.a && data.a.length) addrParts = addrParts.concat(data.a);
+  if (data.ci) addrParts.push(data.ci);
+  if (data.co) addrParts.push(data.co);
+  if (data.p)  addrParts.push(data.p);
+  if (data.ct) addrParts.push(data.ct);
+
+  if (addrParts.length) {
+    var addrQuery = encodeURIComponent(addrParts.join(', '));
+    var appleMapsUrl = 'https://maps.apple.com/?q=' + addrQuery;
+    var googleMapsUrl = 'https://maps.google.com/maps?q=' + addrQuery;
+    html += '<div class="card">' +
+      field({ icon: 'pin', iconColor: 'orange', label: 'Address',
+        valueHtml: esc(addrParts.join('\n')).replace(/\n/g,'<br>'),
+        hint: 'Choose a maps app below' }) +
+      '<div class="map-actions">' +
+        '<a class="map-btn apple" href="' + escAttr(appleMapsUrl) + '" target="_blank" rel="noopener">Apple Maps</a>' +
+        '<a class="map-btn" href="' + escAttr(googleMapsUrl) + '" target="_blank" rel="noopener">Google Maps</a>' +
+      '</div>' +
+    '</div>';
+  }
+
+  var contactRows = '';
+  if (data.m) contactRows += field({ icon: 'smartphone', iconColor: 'green', label: 'Mobile',
+    valueHtml: esc(data.m), href: 'tel:' + data.m.replace(/[^\d+]/g,''), hint: 'Tap to call' });
+  if (data.t) {
+    var extMatch = data.t.match(/x\s*(\d+)\s*$/i);
+    var mainNum = data.t.replace(/x\s*\d+\s*$/i,'').replace(/[^\d+]/g,'');
+    var telHref = 'tel:' + mainNum + (extMatch ? ',' + extMatch[1] : '');
+    contactRows += field({ icon: 'landline', iconColor: 'red', label: 'Telephone',
+      valueHtml: esc(data.t), href: telHref, hint: 'Tap to call' });
+  }
+  if (data.w) contactRows += field({ icon: 'whatsapp', iconColor: 'whatsapp', label: 'WhatsApp',
+    valueHtml: esc(data.w), href: whatsappHref(data.w), newTab: true, hint: 'Tap to open WhatsApp' });
+  if (data.e) contactRows += field({ icon: 'email', iconColor: 'custom', label: 'Email',
+    valueHtml: esc(data.e), href: 'mailto:' + safeMailtoAddress(data.e), hint: 'Tap to email' });
+  if (contactRows) html += '<div class="card">' + contactRows + '</div>';
+
+  html += '<button class="copy-btn" id="copyBtn" onclick="copyToClipboard()">Copy All to Clipboard</button>';
+  html += '<div class="footer">Scanned address label · generated with Address Label</div>';
+
+  content.innerHTML = html;
+  window._labelData = data;
+  window._addrParts = addrParts;
+}
+
+function copyToClipboard() {
+  var data = window._labelData;
+  var addrParts = window._addrParts || [];
+  if (!data) return;
+
+  function h(s){ var d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+  /* Soft-hyphen trick: \u00AD is invisible and non-breaking but breaks
+     Apple Notes Data Detectors so numbers/emails are NOT auto-linked.
+     Works in Notes, Word, TextEdit — renders identically to the original. */
+  function noDetect(s) {
+    /* Soft-hyphen after every digit sequence — breaks phone AND street number detection */
+    s = s.replace(/(\d+)/g, '$1\u00AD');
+    /* Soft-hyphen before @ — breaks email Data Detectors */
+    s = s.replace(/@/g, '\u00AD@');
+    /* Soft-hyphen before every dot — breaks URL/domain Data Detectors */
+    s = s.replace(/\./g, '\u00AD.');
+    return s;
+  }
+
+  /* plain text */
+  var lines = [];
+  if (data.nt) { lines.push(data.nt); lines.push(''); }
+  if (data.s) { lines.push(data.s); lines.push(''); }
+  if (data.n) { lines.push('Name'); lines.push(data.n); lines.push(''); }
+  if (data.c) {
+    var _cl = (data.cl === 'C/O' || (!data.cl && data.c.substring(0,4) === 'C/O ')) ? 'C/O' : (data.cl || 'Company');
+    var _cv = (_cl === 'C/O' && data.c.substring(0,4) === 'C/O ') ? data.c.substring(4) : data.c;
+    lines.push(_cl); lines.push(_cv); lines.push('');
+  }
+  if (addrParts.length) { lines.push('Address'); addrParts.forEach(function(p){ lines.push(noDetect(p)); }); lines.push(''); }
+  if (data.m) { lines.push('Mobile'); lines.push(noDetect(data.m)); lines.push(''); }
+  if (data.t) { lines.push('Telephone'); lines.push(noDetect(data.t)); lines.push(''); }
+  if (data.w) { lines.push('WhatsApp'); lines.push(noDetect(data.w)); lines.push(''); }
+  if (data.e) { lines.push('Email'); lines.push(noDetect(data.e)); lines.push(''); }
+  var plainText = lines.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+
+  /* HTML: bold headers, plain values, soft-hyphen breaks Data Detectors */
+  var htmlParts = [];
+  var S = 'font-family:sans-serif;font-size:14px;line-height:1.7';
+  if (data.nt) { var noteCol = safeColor(data.nc, '#cc0000'); htmlParts.push('<span style="color:' + noteCol + ';font-weight:700">' + h(data.nt) + '</span>'); }
+  if (data.s) htmlParts.push('<b>' + h(data.s) + '</b>');
+  if (data.n) htmlParts.push('<b>Name</b><br>' + h(data.n));
+  if (data.c) {
+    var _cl2 = (data.cl === 'C/O' || (!data.cl && data.c.substring(0,4) === 'C/O ')) ? 'C/O' : (data.cl || 'Company');
+    var _cv2 = (_cl2 === 'C/O' && data.c.substring(0,4) === 'C/O ') ? data.c.substring(4) : data.c;
+    htmlParts.push('<b>' + h(_cl2) + '</b><br>' + h(_cv2));
+  }
+  if (addrParts.length) htmlParts.push('<b>Address</b><br>' + addrParts.map(function(p){ return h(noDetect(p)); }).join('<br>'));
+  if (data.m) htmlParts.push('<b>Mobile</b><br>' + h(noDetect(data.m)));
+  if (data.t) htmlParts.push('<b>Telephone</b><br>' + h(noDetect(data.t)));
+  if (data.w) htmlParts.push('<b>WhatsApp</b><br>' + h(noDetect(data.w)));
+  if (data.e) htmlParts.push('<b>Email</b><br>' + h(noDetect(data.e)));
+  var htmlText = '<!DOCTYPE html><html><body><p style="' + S + '">' + htmlParts.join('<br><br>') + '</p></body></html>';
+
+  var btn = document.getElementById('copyBtn');
+  function showDone(){ btn.textContent='Copied!'; btn.classList.add('done'); setTimeout(function(){ btn.textContent='Copy All to Clipboard'; btn.classList.remove('done'); },2500); }
+
+  var plainBlob = new Blob([plainText],{type:'text/plain'});
+  var htmlBlob  = new Blob([htmlText], {type:'text/html'});
+
+  if (navigator.clipboard && window.ClipboardItem) {
+    navigator.clipboard.write([new ClipboardItem({'text/html':htmlBlob,'text/plain':plainBlob})]).then(showDone).catch(function(){
+      navigator.clipboard.writeText(plainText).then(showDone).catch(function(){ fallbackCopy(plainText); });
+    });
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(plainText).then(showDone).catch(function(){ fallbackCopy(plainText); });
+  } else { fallbackCopy(plainText); }
+}
+
+function fallbackCopy(text){
+  var ta=document.createElement('textarea'); ta.value=text; ta.setAttribute('readonly','');
+  ta.style.cssText='position:fixed;opacity:0;top:0;left:0;pointer-events:none;';
+  document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0,99999);
+  try{ document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta);
+}
+
+render();
+</script>
+</body>
+</html>
